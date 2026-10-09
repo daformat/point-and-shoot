@@ -311,7 +311,10 @@ export function spotlight(style: OverlayStyle = {}): Renderer {
     root.addEventListener("animationend", (e) => {
       if (e.animationName === "pns-flash") {
         root!.classList.remove("shot");
-      } else if (e.animationName === "pns-shake" || e.animationName === "pns-pulse") {
+      } else if (
+        e.animationName === "pns-shake" ||
+        e.animationName === "pns-pulse"
+      ) {
         root!.classList.remove("error");
       }
     });
