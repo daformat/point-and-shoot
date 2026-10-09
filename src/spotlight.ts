@@ -66,8 +66,10 @@ export type OverlayStyle = {
   padding?: number;
   /** Corner radius, px. 8 by default. */
   radius?: number;
-  /** The dot's size, px. 4 by default. */
+  /** The dot's size, px: 14 by default, as Glea's (a 4px point in the 5px padding). */
   dotSize?: number;
+  /** The dot's corner radius, px. 6 by default. */
+  dotRadius?: number;
   /** How much the highlight shrinks while pressed. 0.95 by default, 1 for none. */
   pressScale?: number;
   /** How far the highlight leans towards the pointer, px. 4 by default, 0 for none. */
@@ -96,6 +98,7 @@ const PROPERTIES: [keyof OverlayStyle, string, (v: never) => string][] = [
   ["padding", "--pns-padding", px],
   ["radius", "--pns-radius", px],
   ["dotSize", "--pns-dot-size", px],
+  ["dotRadius", "--pns-dot-radius", px],
   ["pressScale", "--pns-press-scale", String],
   ["lean", "--pns-lean", px],
   ["duration", "--pns-duration", ms],
@@ -117,7 +120,8 @@ const CSS = `
     --pns-border: none;
     --pns-padding: 5px;
     --pns-radius: 8px;
-    --pns-dot-size: 4px;
+    --pns-dot-size: 14px;
+    --pns-dot-radius: 6px;
     --pns-press-scale: 0.95;
     --pns-lean: 4px;
     --pns-duration: 110ms;
@@ -177,7 +181,7 @@ const CSS = `
   /* With nothing targeted, the dot sits under the pointer: no easing. */
   .root.blank .area {
     --pad: calc(var(--pns-dot-size) / 2);
-    border-radius: calc(var(--pns-dot-size) / 2);
+    border-radius: var(--pns-dot-radius);
     background: var(--pns-dot-color);
     transition: opacity 160ms ease-out;
   }

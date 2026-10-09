@@ -289,7 +289,8 @@ createPointAndShoot({
     border: "1px solid currentColor",
     padding: 5, // px around the target
     radius: 8, // px
-    dotSize: 4, // px
+    dotSize: 14, // px
+    dotRadius: 6, // px
     pressScale: 0.95, // 1 for no press
     lean: 4, // px towards the pointer, 0 for none
     duration: 110, // ms between targets
@@ -325,7 +326,8 @@ point-and-shoot[data-state="pressed"] {
 | `--pns-border`          | `none`                    |
 | `--pns-padding`         | `5px`                     |
 | `--pns-radius`          | `8px`                     |
-| `--pns-dot-size`        | `4px`                     |
+| `--pns-dot-size`        | `14px`                    |
+| `--pns-dot-radius`      | `6px`                     |
 | `--pns-press-scale`     | `0.95`                    |
 | `--pns-lean`            | `4px`                     |
 | `--pns-duration`        | `110ms`                   |

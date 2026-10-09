@@ -528,6 +528,24 @@ test.describe("the spotlight's pixels", () => {
     );
   });
 
+  test("draws the dot at Glea's size, 14px", async ({ page }) => {
+    await page.evaluate(() => {
+      window.setup({}, { dotColor: "rgb(255 0 0)", motion: "none" });
+    });
+    // Over nothing: the empty band under the tall column's first line.
+    const huge = await box(page, "#huge");
+    const x = Math.round(huge.x + 100);
+    const y = Math.round(huge.y + 600);
+    await page.mouse.move(x, y);
+    await page.evaluate(() => window.pns.activate());
+    await page.mouse.move(x + 1, y);
+    await page.mouse.move(x, y);
+    await page.waitForTimeout(400);
+    expect(near(await pixel(page, x + 5, y), [255, 0, 0])).toBe(true);
+    expect(near(await pixel(page, x, y + 5), [255, 0, 0])).toBe(true);
+    expect(near(await pixel(page, x + 9, y), [255, 0, 0])).toBe(false);
+  });
+
   test("takes its color from the page's stylesheet", async ({ page }) => {
     await page.evaluate(() => {
       const style = document.createElement("style");
