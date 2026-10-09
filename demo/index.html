@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>point-and-shoot demo</title>
+    <style>
+      :root {
+        --bg: #fbfbfa;
+        --fg: #1c1c1f;
+        --muted: #6b6b73;
+        --card: #fff;
+        --line: #e6e6e3;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1c1c1f;
+          --fg: #ececee;
+          --muted: #9a9aa3;
+          --card: #26262a;
+          --line: #34343a;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          16px/1.55 -apple-system,
+          BlinkMacSystemFont,
+          "Helvetica Neue",
+          sans-serif;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        align-items: center;
+        padding: 12px 16px;
+        background: color-mix(in srgb, var(--bg) 90%, transparent);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
+        font-size: 14px;
+      }
+      header button {
+        font: inherit;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: inherit;
+      }
+      header label {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        color: var(--muted);
+      }
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 24px 16px 120px;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+      }
+      .card {
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--card);
+      }
+      .card h3 {
+        margin: 0 0 4px;
+        font-size: 15px;
+      }
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .icons {
+        display: flex;
+        gap: 10px;
+        padding: 10px 0;
+      }
+      .icons svg {
+        width: 28px;
+        height: 28px;
+      }
+      figure {
+        margin: 24px 0;
+      }
+      figure img {
+        width: 100%;
+        border-radius: 10px;
+        display: block;
+      }
+      figcaption {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 6px;
+      }
+      canvas {
+        width: 100%;
+        height: 140px;
+        border-radius: 10px;
+        display: block;
+      }
+      #log {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        width: min(360px, calc(100vw - 32px));
+        max-height: 40vh;
+        overflow: auto;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        font:
+          12px/1.4 ui-monospace,
+          Menlo,
+          monospace;
+        white-space: pre-wrap;
+      }
+      .toast {
+        position: fixed;
+        z-index: 2147483647;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgb(28 28 32 / 0.92);
+        color: #fff;
+        font:
+          600 12px/16px -apple-system,
+          sans-serif;
+        transition: opacity 200ms;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <button id="toggle">Point and shoot (P)</button>
+      <label><input type="checkbox" id="area" checked /> drag to capture</label>
+      <label>
+        selection
+        <select id="selection">
+          <option value="target">target</option>
+          <option value="anywhere">anywhere</option>
+          <option value="shoot">shoot</option>
+          <option value="ignore">ignore</option>
+        </select>
+      </label>
+      <label>
+        after
+        <select id="after">
+          <option value="deactivate">deactivate</option>
+          <option value="stay">stay</option>
+        </select>
+      </label>
+      <label>color <input type="color" id="color" value="#7058ff" /></label>
+      <label><input type="checkbox" id="fail" /> handler fails</label>
+    </header>
+    <main>
+      <h1>Point and shoot</h1>
+      <p id="intro">
+        Turn the mode on, then point at anything on this page. The spotlight
+        morphs onto the block under the pointer; a <em>click</em> shoots it, a
+        <strong>drag</strong> captures an area. Select some text first to see
+        how selections are handled.
+      </p>
+
+      <h2>Cards</h2>
+      <p>A custom matcher picks these up whole, with their id as data.</p>
+      <div class="cards">
+        <div class="card" data-card-id="alpha">
+          <h3>Alpha</h3>
+          <p>The first card, with a little text.</p>
+        </div>
+        <div class="card" data-card-id="beta">
+          <h3>Beta</h3>
+          <p>Another one, a bit longer, so it wraps on two lines.</p>
+        </div>
+        <div class="card" data-card-id="gamma">
+          <h3>Gamma</h3>
+          <p>And a third.</p>
+        </div>
+      </div>
+
+      <h2>Icons</h2>
+      <p>Drag over these to collect the SVGs and cards inside the area.</p>
+      <div class="icons" id="icons"></div>
+
+      <figure>
+        <img id="photo" alt="A gradient standing in for a photo" />
+        <figcaption>An image, with a caption.</figcaption>
+      </figure>
+
+      <h2>A list</h2>
+      <ul>
+        <li>Items in a list target their own line.</li>
+        <li>
+          Inline <a href="#">links</a> and <code>code</code> target their block.
+        </li>
+        <li>Empty wrappers are skipped.</li>
+      </ul>
+
+      <canvas id="canvas"></canvas>
+
+      <blockquote>
+        <p>
+          A quote, for good measure. It has enough words in it to span a couple
+          of lines in a narrow column.
+        </p>
+      </blockquote>
+    </main>
+    <div id="log" aria-label="Log"></div>
+
+    <script src="../dist/point-and-shoot.iife.js"></script>
+    <script>
+      const {
+        createPointAndShoot,
+        defaultTargets,
+        match,
+        elementsInRect,
+        toMarkdown,
+      } = window.PointAndShoot;
+
+      // Some page content to point at.
+      const icons = document.getElementById("icons");
+      [
+        "#ff6b6b",
+        "#ffa94d",
+        "#ffd43b",
+        "#69db7c",
+        "#4dabf7",
+        "#9775fa",
+      ].forEach((c, i) => {
+        icons.insertAdjacentHTML(
+          "beforeend",
+          `<svg viewBox="0 0 24 24" aria-label="icon ${i + 1}"><circle cx="12" cy="12" r="10" fill="${c}"/></svg>`,
+        );
+      });
+      const photo = document.getElementById("photo");
+      photo.src =
+        "data:image/svg+xml," +
+        encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="360"><defs><linearGradient id="g" x2="1" y2="1"><stop offset="0" stop-color="#7058ff"/><stop offset="1" stop-color="#ff8a65"/></linearGradient></defs><rect width="800" height="360" fill="url(#g)"/></svg>',
+        );
+      const canvas = document.getElementById("canvas");
+      canvas.width = 728;
+      canvas.height = 140;
+      const g = canvas.getContext("2d");
+      for (let i = 0; i < 40; i++) {
+        g.fillStyle = `hsl(${i * 9} 70% 60%)`;
+        g.beginPath();
+        g.arc(
+          Math.random() * 728,
+          Math.random() * 140,
+          6 + Math.random() * 14,
+          0,
+          7,
+        );
+        g.fill();
+      }
+
+      const logEl = document.getElementById("log");
+      const log = (...parts) => {
+        logEl.textContent =
+          parts.join(" ") + "\n" + logEl.textContent.slice(0, 4000);
+      };
+      const describe = (t) =>
+        !t
+          ? "nothing"
+          : t.node instanceof Range
+            ? `selection "${t.node.toString().slice(0, 30)}"`
+            : `${t.kind} <${t.node.localName}>`;
+
+      // The consumer's own confirmation UI, from the shot event.
+      function toast(text, rect) {
+        const el = document.createElement("div");
+        el.className = "toast";
+        el.textContent = text;
+        el.style.left = Math.max(8, rect.viewport.x) + "px";
+        el.style.top =
+          Math.min(
+            innerHeight - 30,
+            rect.viewport.y + rect.viewport.height + 12,
+          ) + "px";
+        document.body.appendChild(el);
+        setTimeout(() => (el.style.opacity = "0"), 1200);
+        setTimeout(() => el.remove(), 1500);
+      }
+
+      const cards = match("[data-card-id]", (el) => ({
+        kind: "card",
+        whole: true,
+        data: { id: el.dataset.cardId },
+      }));
+
+      const wait = (ms, signal) =>
+        new Promise((resolve, reject) => {
+          const t = setTimeout(resolve, ms);
+          signal.addEventListener(
+            "abort",
+            () => (clearTimeout(t), reject(signal.reason)),
+          );
+        });
+
+      const $ = (id) => document.getElementById(id);
+
+      const area = {
+        onCapture: async (rect, ctx) => {
+          const found = elementsInRect(rect.viewport, ["svg", cards], {
+            mode: "overlap",
+          });
+          await wait(300, ctx.signal);
+          if ($("fail").checked) throw new Error("Nope");
+          return { message: `${found.length} things in the area`, found };
+        },
+      };
+
+      const pns = createPointAndShoot({
+        targets: [cards, ...defaultTargets],
+        area,
+        // The controls stay usable while the mode is on.
+        ignore: "header, #log",
+        onShoot: async (target, ctx) => {
+          if (target.node instanceof HTMLCanvasElement)
+            return ctx.captureArea();
+          await wait(400, ctx.signal); // a pretend round trip
+          if ($("fail").checked) throw new Error("Nope");
+          if (target.kind === "card")
+            return { message: `Card ${target.data.id}` };
+          return { message: "Captured", markdown: toMarkdown(target.node) };
+        },
+        feedback: {
+          announce: { success: (r) => r.value.message },
+        },
+      });
+      window.pns = pns;
+
+      pns.on("activate", () => log("activate"));
+      pns.on("deactivate", () => log("deactivate"));
+      pns.on("target", (t) => log("target", describe(t)));
+      pns.on("shoot", (t) => log("shoot", describe(t)));
+      pns.on("areaend", (r) => log("areaend", JSON.stringify(r.viewport)));
+      pns.on("miss", () => log("miss"));
+      pns.on("shot", (r) => {
+        if (r.ok) {
+          log(
+            "shot ok",
+            JSON.stringify(r.value.markdown ?? r.value.message).slice(0, 200),
+          );
+          toast(r.value.message, r.rect);
+        } else {
+          log("shot failed", r.cancelled ? "(cancelled)" : String(r.error));
+        }
+      });
+
+      // The button and a key of the page's own: the library has no hotkeys.
+      $("toggle").addEventListener("click", (e) => {
+        e.stopPropagation();
+        pns.toggle({ at: { x: e.clientX, y: e.clientY } });
+      });
+      addEventListener("keydown", (e) => {
+        if (
+          e.key === "p" &&
+          !e.metaKey &&
+          !e.ctrlKey &&
+          !/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)
+        ) {
+          e.preventDefault();
+          pns.toggle();
+        }
+      });
+      $("area").addEventListener("change", (e) =>
+        pns.configure({ area: e.target.checked ? area : undefined }),
+      );
+      $("selection").addEventListener("change", (e) =>
+        pns.configure({ selection: e.target.value }),
+      );
+      $("after").addEventListener("change", (e) =>
+        pns.configure({ after: e.target.value }),
+      );
+      $("color").addEventListener("input", (e) => {
+        pns.configure({
+          overlay: {
+            color: e.target.value + "33",
+            border: `1px solid ${e.target.value}`,
+          },
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>point-and-shoot fixtures</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #fff;
+        color: #000;
+        font:
+          16px/20px Arial,
+          Helvetica,
+          sans-serif;
+      }
+      body > * {
+        position: absolute;
+        box-sizing: border-box;
+        margin: 0;
+      }
+      #padded {
+        left: 20px;
+        top: 20px;
+        width: 400px;
+        height: 160px;
+        padding: 60px 140px;
+        border: 1px solid #ddd;
+      }
+      #para {
+        left: 20px;
+        top: 200px;
+        width: 400px;
+      }
+      #carousel {
+        left: 20px;
+        top: 280px;
+        width: 300px;
+        height: 80px;
+        overflow: hidden;
+      }
+      #track {
+        display: flex;
+        width: 900px;
+      }
+      .slide {
+        flex: none;
+        width: 280px;
+        height: 80px;
+        margin-right: 20px;
+        background: #eee;
+      }
+      #hidden-wrap {
+        left: 20px;
+        top: 380px;
+        width: 200px;
+        height: 40px;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      #img-wrap {
+        left: 20px;
+        top: 440px;
+        width: 160px;
+        height: 100px;
+      }
+      #img-wrap img {
+        display: block;
+        width: 160px;
+        height: 100px;
+      }
+      #bg {
+        left: 200px;
+        top: 440px;
+        width: 120px;
+        height: 100px;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Crect width='10' height='10' fill='teal'/%3E%3C/svg%3E")
+          center / cover;
+      }
+      #drawing {
+        left: 340px;
+        top: 440px;
+        width: 100px;
+        height: 100px;
+      }
+      #shadow {
+        left: 460px;
+        top: 20px;
+        width: 300px;
+        height: 80px;
+        display: block;
+      }
+      #icons {
+        left: 460px;
+        top: 120px;
+        display: flex;
+        gap: 16px;
+      }
+      #icons div {
+        width: 24px;
+        height: 24px;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Ccircle cx='5' cy='5' r='5' fill='orange'/%3E%3C/svg%3E");
+      }
+      #select-p {
+        left: 460px;
+        top: 180px;
+        width: 200px;
+      }
+      .card {
+        top: 300px;
+        width: 100px;
+        height: 60px;
+        background: #f4f4f4;
+      }
+      #card-a {
+        left: 460px;
+      }
+      #card-b {
+        left: 580px;
+      }
+      #canvas {
+        left: 460px;
+        top: 400px;
+        width: 120px;
+        height: 60px;
+      }
+      #frame {
+        left: 600px;
+        top: 400px;
+        width: 140px;
+        height: 60px;
+        border: 0;
+      }
+      #huge {
+        left: 780px;
+        top: 20px;
+        width: 200px;
+        height: 3500px;
+        background: #fafafa;
+      }
+      #huge-child {
+        width: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="padded">Short</div>
+    <p id="para">
+      A paragraph with an inline <a id="link" href="#clicked">link</a> and
+      <em>emphasis</em> in it, long enough to wrap.
+    </p>
+    <div id="carousel">
+      <div id="track">
+        <div class="slide" id="slide-1">First slide</div>
+        <div class="slide" id="slide-2">Second slide, partly hidden</div>
+        <div class="slide" id="slide-3">Third slide</div>
+      </div>
+    </div>
+    <div id="hidden-wrap">
+      <span style="visibility: hidden">Secret</span>
+      <span class="sr-only">Only for screen readers</span>
+    </div>
+    <div id="img-wrap">
+      <img
+        id="img"
+        alt="A box"
+        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10'%3E%3Crect width='16' height='10' fill='purple'/%3E%3C/svg%3E"
+      />
+    </div>
+    <div id="bg"></div>
+    <svg id="drawing" viewBox="0 0 100 100">
+      <circle id="circle" cx="50" cy="50" r="40" fill="tomato" />
+    </svg>
+    <x-card id="shadow"></x-card>
+    <div id="icons">
+      <div id="icon-1"></div>
+      <div id="icon-2"></div>
+      <div id="icon-3"></div>
+      <div id="icon-4"></div>
+    </div>
+    <p id="select-p">
+      Select these words across two lines of text to light each line.
+    </p>
+    <div class="card" id="card-a" data-id="a">Card A</div>
+    <div class="card" id="card-b" data-id="b">Card B</div>
+    <canvas id="canvas" width="120" height="60"></canvas>
+    <iframe id="frame" srcdoc="<p>Framed</p>"></iframe>
+    <div id="huge"><div id="huge-child">Top of a very tall column</div></div>
+
+    <script src="/dist/point-and-shoot.iife.js"></script>
+    <script>
+      customElements.define(
+        "x-card",
+        class extends HTMLElement {
+          constructor() {
+            super();
+            const root = this.attachShadow({ mode: "open" });
+            const p = document.createElement("p");
+            p.id = "inner";
+            p.textContent = "Inside a shadow root";
+            p.style.margin = "20px";
+            root.append(p);
+          }
+        },
+      );
+      document
+        .getElementById("canvas")
+        .getContext("2d")
+        .fillRect(10, 10, 50, 30);
+      window.linkClicks = 0;
+      document.getElementById("link").addEventListener("click", (e) => {
+        e.preventDefault();
+        window.linkClicks++;
+      });
+
+      // A controller whose real spotlight also records what it's asked to draw.
+      window.setup = (opts = {}, style = {}) => {
+        window.pns?.destroy();
+        window.views = [];
+        window.events = [];
+        const { createPointAndShoot, spotlight } = window.PointAndShoot;
+        const real = spotlight(style);
+        const overlay = {
+          ...real,
+          render(view) {
+            window.views.push(view);
+            real.render(view);
+          },
+        };
+        window.pns = createPointAndShoot({ overlay, ...opts });
+        for (const type of ["target", "shoot", "shot", "miss", "areaend"]) {
+          window.pns.on(type, (...args) => window.events.push([type, ...args]));
+        }
+        return true;
+      };
+      window.lastView = () => window.views[window.views.length - 1] ?? null;
+      window.targetIs = (node) => window.pns.target?.node === node;
+    </script>
+  </body>
+</html>
