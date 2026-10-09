@@ -1,6 +1,6 @@
 {
   "name": "@daformat/point-and-shoot",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "license": "Zero-Clause BSD",
   "description": "point-and-shoot, a zero-dependency library to point at anything on a page and capture it: a spotlight morphs onto the block under the pointer, a click shoots it, a drag captures an area. Lifted out of Glea.",
   "keywords": [
