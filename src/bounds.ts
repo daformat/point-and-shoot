@@ -186,6 +186,8 @@ export type LineRectsOptions = {
   maxNodes?: number;
   /** The most boxes to gather: 2000 by default. */
   maxRects?: number;
+  /** The most milliseconds to spend: 24 by default, so a slow machine gives up sooner. */
+  maxTime?: number;
 };
 
 /** Merges boxes on the same line that touch or nearly do (words, inline runs), not across columns. */
@@ -238,7 +240,12 @@ function firstNode(range: Range): Node | null {
   return null;
 }
 
-function gatherLines(range: Range, maxNodes: number, maxRects: number): Rect[] {
+function gatherLines(
+  range: Range,
+  maxNodes: number,
+  maxRects: number,
+  maxTime: number,
+): Rect[] {
   const doc = range.startContainer.ownerDocument ?? document;
   const bounds = () => {
     const r = range.getBoundingClientRect();
@@ -321,8 +328,13 @@ function gatherLines(range: Range, maxNodes: number, maxRects: number): Rect[] {
     return n;
   };
   let budget = maxNodes;
+  const deadline = performance.now() + maxTime;
   while (node) {
-    if (--budget < 0 || rects.length > maxRects) {
+    if (
+      --budget < 0 ||
+      rects.length > maxRects ||
+      ((budget & 63) === 0 && performance.now() > deadline)
+    ) {
       // Too much to draw line by line: one box around it all.
       return bounds();
     }
@@ -371,8 +383,8 @@ let lineCache: {
 
 /**
  * A range's lines, in viewport px: its text, line by line (runs on the same
- * line merged, columns kept apart), and its media's boxes. Past `maxNodes` or
- * `maxRects`, a single box around it all. Cached until the range changes, an
+ * line merged, columns kept apart), and its media's boxes. Past `maxNodes`,
+ * `maxRects` or `maxTime`, a single box around it all. Cached until the range changes, an
  * element scrolls (see `forgetLineRects`) or the viewport resizes; the
  * page's own scrolling moves the cached lines along.
  */
@@ -407,6 +419,7 @@ export function lineRects(
     range,
     options.maxNodes ?? 4000,
     options.maxRects ?? 2000,
+    options.maxTime ?? 24,
   );
   lineCache = {
     key,

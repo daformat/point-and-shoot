@@ -162,6 +162,8 @@ describe("targeting", () => {
 
   it("re-resolves when flags change", async () => {
     const pns = create<{ id: string }>({
+      // No waiting on the container: the flags are what's tested here.
+      dwell: 0,
       targets: [
         {
           name: "flagged",
@@ -175,8 +177,6 @@ describe("targeting", () => {
     expect(pns.target?.kind).toBe("element");
     pns.setFlags({ cards: true });
     expect(pns.flags).toEqual({ cards: true });
-    // The card holds the current target: the spotlight grows onto it after the dwell.
-    await tick(200);
     expect(pns.target?.kind).toBe("card");
   });
 });
