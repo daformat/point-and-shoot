@@ -272,6 +272,7 @@ export function spotlight(style: OverlayStyle = {}): Renderer {
   let drawn: Rect[] | null = null;
   let last: View | null = null;
   let morphTimer = 0;
+  let releaseTimer = 0;
 
   function build() {
     host = document.createElement(HOST_TAG);
@@ -304,6 +305,16 @@ export function spotlight(style: OverlayStyle = {}): Renderer {
     flashPath.setAttribute("part", "flash");
     lines.append(fill, flashPath);
     shift.appendChild(lines);
+    // Done, the flash and the shake are let go: a box that was hidden (the
+    // highlight, while a selection is lit) would otherwise play them again
+    // when it's shown.
+    root.addEventListener("animationend", (e) => {
+      if (e.animationName === "pns-flash") {
+        root!.classList.remove("shot");
+      } else if (e.animationName === "pns-shake" || e.animationName === "pns-pulse") {
+        root!.classList.remove("error");
+      }
+    });
   }
 
   function setVar(name: string, value: string) {
@@ -367,6 +378,7 @@ export function spotlight(style: OverlayStyle = {}): Renderer {
       host?.remove();
       last = null;
       clearTimeout(morphTimer);
+      clearTimeout(releaseTimer);
     },
 
     render(view) {
@@ -407,10 +419,27 @@ export function spotlight(style: OverlayStyle = {}): Renderer {
         clearTimeout(morphTimer);
         morphTimer = window.setTimeout(() => list.remove("morphing"), 260);
       }
-      if (view.state === "pressed" || view.state === "dragging") {
+      // The spring back is the press's alone: it's let go once it has played,
+      // or as soon as the highlight goes somewhere else, which then moves as
+      // any move does rather than bouncing (with after: "stay", the next
+      // target comes while it's still on).
+      const moved =
+        !view.instant &&
+        (view.rect?.x !== prev?.rect?.x ||
+          view.rect?.y !== prev?.rect?.y ||
+          view.rect?.width !== prev?.rect?.width ||
+          view.rect?.height !== prev?.rect?.height);
+      if (
+        view.state === "pressed" ||
+        view.state === "dragging" ||
+        (moved && prev?.state !== "pressed")
+      ) {
         list.remove("released");
+        clearTimeout(releaseTimer);
       } else if (prev?.state === "pressed") {
         list.add("released");
+        clearTimeout(releaseTimer);
+        releaseTimer = window.setTimeout(() => list.remove("released"), 520);
       }
       list.toggle("on", view.state !== "idle");
       list.toggle("leaving", view.state === "idle");
